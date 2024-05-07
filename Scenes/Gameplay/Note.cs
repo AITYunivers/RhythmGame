@@ -14,6 +14,7 @@ namespace RhythmGame.Scenes.Gameplay
         public float Position;
         public bool Removed;
         public bool HitNote;
+        public static Color Highlight = new Color(255, 255, 255, 75);
 
         public Note(int track, bool hitNote = false)
         {
@@ -23,8 +24,8 @@ namespace RhythmGame.Scenes.Gameplay
 
         public void Render()
         {
-            Raylib.DrawTexturePro(AssetLoader.GetTexture("Note"), AssetLoader.GetBounds("Note"), GetBounds(), new Vector2(Size / 2f, Size / 2f), 0, HitNote ? Color.White : NoteColors[Track]);
-            //Raylib.DrawRectangleLinesEx(GetBounds(false), 2f, Color.Red);
+            Raylib.DrawTexturePro(AssetLoader.GetTexture("Note"), AssetLoader.GetBounds("Note"), GetBounds(), new Vector2(Size / 2f, Size / 2f), 0, HitNote ? (Raylib.IsKeyDown(Program.Settings.Keybinds[3 - Track]) ? NoteColors[Track].Add(Highlight) : NoteColors[Track]) : NoteColors[Track]);
+            Raylib.DrawRectangleLinesEx(GetBounds(false), 2f, Color.Red);
         }
 
         public void Tick()

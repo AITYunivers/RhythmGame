@@ -25,6 +25,8 @@ namespace RhythmGame
             LoadUserSettings();
 
             Raylib.InitWindow(1280, 720, "Hello, Raylib!");
+            Raylib.InitAudioDevice();
+            Raylib.SetMasterVolume(0.2f);
             rlImGui.Setup(true);
             AssetLoader.LoadAssets();
             CurrentScene = new GameplayScene();
@@ -37,6 +39,11 @@ namespace RhythmGame
                 Raylib.DrawFPS(10, 10);
                 CurrentScene.Tick();
                 CurrentScene.Render();
+
+                // Render Combo/Misses
+
+                Raylib.DrawText("Combo: " + ((GameplayScene)CurrentScene).Combo, 10, 30, 20, Color.SkyBlue);
+                Raylib.DrawText("Misses: " + ((GameplayScene)CurrentScene).Misses, 10, 50, 20, Color.Red);
 
                 // Render debug
 

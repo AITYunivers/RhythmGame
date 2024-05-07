@@ -1,4 +1,7 @@
 ﻿using ImGuiNET;
+using Newtonsoft.Json;
+using Raylib_cs;
+using RhythmGame.Logic.Mappings;
 using System.Diagnostics;
 
 namespace RhythmGame.Scenes.Gameplay
@@ -9,6 +12,22 @@ namespace RhythmGame.Scenes.Gameplay
         public List<Note> Notes = new List<Note>();
         public int Combo = 0;
         public int Misses = 0;
+        public FNFMap Mapping = new FNFMap();
+        public Stopwatch SongPosition = new Stopwatch();
+
+        public GameplayScene()
+        {
+            Mapping = JsonConvert.DeserializeObject<FNFMap>(File.ReadAllText(@"F:\Friday Night Funkin\Friday Night Funkin\assets\data\songs\milf\milf-chart.json"))!;
+            SongPosition.Start();
+
+            Sound inst = Raylib.LoadSound(@"F:\Friday Night Funkin\Friday Night Funkin\assets\songs\milf\Inst.ogg");
+            Sound bfVocals = Raylib.LoadSound(@"F:\Friday Night Funkin\Friday Night Funkin\assets\songs\milf\Voices-bf.ogg");
+            Sound momVocals = Raylib.LoadSound(@"F:\Friday Night Funkin\Friday Night Funkin\assets\songs\milf\Voices-mom.ogg");
+            
+            Raylib.PlaySound(inst);
+            Raylib.PlaySound(bfVocals);
+            Raylib.PlaySound(momVocals);
+        }
 
         public void Render()
         {
@@ -16,20 +35,12 @@ namespace RhythmGame.Scenes.Gameplay
             foreach (Note note in Notes)
                 note.Render();
         }
-
-        Stopwatch bs = Stopwatch.StartNew();
-        Stopwatch bs2 = Stopwatch.StartNew();
-        int lastTrack = 0;
-        int jack = 0;
+        
         public void Tick()
         {
             HitNotes.Tick(Notes);
 
-            if (bs.ElapsedMilliseconds >= new Random().Next(100, 200))
-            {
-                Notes.Add(new Note(GetRandomTrack()));
-                bs.Restart();
-            }
+            TickMap();
 
             for (int i = 0; i < Notes.Count; i++) 
             {
@@ -39,16 +50,21 @@ namespace RhythmGame.Scenes.Gameplay
             }
         }
 
-        public int GetRandomTrack()
+        private int _noteIndex;
+        private void TickMap()
         {
-            Random rand = new Random();
-            int track = rand.Next(4);
-            while (track == lastTrack && jack > 1)
-                track = rand.Next(4);
-            if (track == lastTrack)
-                jack++;
-            lastTrack = track;
-            return track;
+            for (; _noteIndex < Mapping.Notes.Hard.Length; _noteIndex++)
+            {
+                FNFMap.Note noteData = Mapping.Notes.Hard[_noteIndex];
+                if (noteData.Time > SongPosition.ElapsedMilliseconds)
+                    break;
+
+                if (noteData.Direction > 3) // Exclude enemy notes
+                    continue;
+
+                Note gameNote = new Note(3 - noteData.Direction); // Flip the tracks from right to left
+                Notes.Add(gameNote);
+            }
         }
 
         public void DrawDebug()
